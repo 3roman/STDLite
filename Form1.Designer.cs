@@ -52,9 +52,9 @@
             // 
             // txtKeyword
             // 
-            this.txtKeyword.Location = new System.Drawing.Point(53, 6);
+            this.txtKeyword.Location = new System.Drawing.Point(95, 6);
             this.txtKeyword.Name = "txtKeyword";
-            this.txtKeyword.Size = new System.Drawing.Size(418, 21);
+            this.txtKeyword.Size = new System.Drawing.Size(376, 21);
             this.txtKeyword.TabIndex = 1;
             this.txtKeyword.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtKeyword_KeyPress);
             // 
@@ -102,9 +102,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(6, 10);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 12);
+            this.label1.Size = new System.Drawing.Size(83, 12);
             this.label1.TabIndex = 4;
-            this.label1.Text = "关键字";
+            this.label1.Text = "标准号/标准名";
             // 
             // Form1
             // 
@@ -121,7 +121,7 @@
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.TopMost = true;
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
