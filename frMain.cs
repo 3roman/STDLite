@@ -8,28 +8,21 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Resources;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-
 using Common;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
-namespace SEG_SD
+namespace STDLite
 {
     public partial class FrMain : Form
     {
-        [DllImport("user32.dll")]
-        public static extern int ShowScrollBar(IntPtr hWnd, int iBar, int bShow);
-
         public FrMain()
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             InitializeComponent();
             SetFormTitle();
-            //lstMain.Scrollable = false;
-            //ShowScrollBar(lstMain.Handle, 1, 1);
         }
 
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
@@ -41,20 +34,23 @@ namespace SEG_SD
             if (dllName.EndsWith("_resources")) return null;
             var rsc = new ResourceManager(GetType().Namespace + ".Properties.Resources",
                 Assembly.GetExecutingAssembly());
-            var buffer = (byte[]) rsc.GetObject(dllName);
+            var buffer = (byte[])rsc.GetObject(dllName);
+
             return Assembly.Load(buffer);
         }
 
         public void SetFormTitle()
         {
             const string title = "{0}  V{1}   工艺系统室专版";
-            Text = string.Format(title, Application.ProductName, Application.ProductVersion);
+            Text = string.Format(title,
+                Application.ProductName,
+                Application.ProductVersion);
         }
 
-        public string RetrieveHtml(string url, string data = "", bool get = true)
+        private string RetrieveHtml(string url, string data = "", bool get = true)
         {
             var wc = new WebClient();
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+            wc.Headers.Add("Content-Type", "application/ipx-www-form-urlencoded");
             var postData = Encoding.UTF8.GetBytes(data);
             byte[] datas;
             try
@@ -75,19 +71,30 @@ namespace SEG_SD
         {
             var wc = new WebClient();
             var datas = wc.DownloadData(url);
-            if (10000 > datas.Length)
-            {   // URI不存在给出提示
-                MessageBox.Show("/(ㄒoㄒ)/~~SEG标准库暂未收录该标准!", "友情提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-               
-            }
-            else
+            if (10000 > datas.Length) // URI不存在给出提示
             {
-                var fs = new FileStream(filePath, FileMode.Create);
-                fs.Write(datas, 0, datas.Length);
-                fs.Close();
-                return true;
+                MessageBox.Show("/(ㄒoㄒ)/~~SEG标准库暂未收录该标准!", "友情提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+               
+                return false;
             }
+            var fs = new FileStream(filePath, FileMode.Create);
+            fs.Write(datas, 0, datas.Length);
+            fs.Close();
+
+            return true;
+        }
+
+        private static string AddBlank(string number)
+        {
+            if (number.Length> 0 && char.IsLetter(number.First()))
+            {
+                foreach (var c in number.Where(char.IsDigit))
+                {
+                    return number.Insert(number.IndexOf(c), " ");
+                }
+            }
+
+            return number;
         }
 
         public void GetStandard(string url, ref List<object> items)
@@ -99,7 +106,6 @@ namespace SEG_SD
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
             
-
             const string xPath = "//a[@href]";
             var nodes = doc.DocumentNode.SelectNodes(xPath);
 
@@ -110,16 +116,14 @@ namespace SEG_SD
                 items.Add(new
                 {
                     // 标准号
-                    number = innerText[1],
+                    number = AddBlank(innerText[1].ToUpper()),
                     // 标准名
-                    name = innerText[0],    
+                    name = innerText[0],
                     // 下载地址
-                    link =
-                        "http://10.113.1.69/std/showEBook.aspx?fileid=" +
+                    link = "http://10.113.1.69/std/showEBook.aspx?fileid=" +
                         node.Attributes["href"].Value.Replace("../std/stdmgr.aspx?fileid=", ""),
                     // 是否过期
                     validate = node.ParentNode.ParentNode.ChildNodes[13].ChildNodes[1].InnerText.Replace("标准状态:", "")
-                    // 是否过期
                 });
             }
 
@@ -150,6 +154,7 @@ namespace SEG_SD
                 }
             }
             lstMain.EndUpdate();
+
         }
 
         private void btnSearch_Click(object sender, EventArgs e)
@@ -174,34 +179,44 @@ namespace SEG_SD
             AddListItems(items);
 
             SetFormTitle();
+
         }
 
         private void lstMain_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            Cursor = Cursors.WaitCursor;
-            Text = "玩命下载中...稍安勿躁(*@ο@*)";
-            //var filePath = string.Format("{0}\\{1} {2}.pdf",
-            //    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-            //    lstMain.SelectedItems[0].SubItems[1].Text,
-            //    lstMain.SelectedItems[0].SubItems[2].Text);
-            var filePath = string.Format("{0} {1}.pdf",
-                lstMain.SelectedItems[0].SubItems[0].Text,
-                lstMain.SelectedItems[0].SubItems[1].Text).Replace("/", "");
-            var uri = lstMain.SelectedItems[0].SubItems[3].Text;
-            var ret = DownloadStandard(filePath, uri);
-            Cursor = Cursors.Default;
-            if (ret)
+            switch (e.Button)
             {
-                Process.Start(filePath);
+                case MouseButtons.Right:
+                    var index = lstMain.FocusedItem.Index;
+                    var content = string.Format("{0}{1}",
+                        lstMain.Items[index].SubItems[0].Text,
+                        lstMain.Items[index].SubItems[1].Text);
+                    Clipboard.Clear();// 清空剪切板内容
+                    Clipboard.SetData(DataFormats.Text, content);// 复制内容到剪切板
+                    break;
+
+                case MouseButtons.Left:
+                    Cursor = Cursors.WaitCursor;
+                    Text = "玩命下载中...稍安勿躁(*@ο@*)";
+                    var filePath = string.Format("{0} {1}.pdf",
+                        lstMain.SelectedItems[0].SubItems[0].Text,
+                        lstMain.SelectedItems[0].SubItems[1].Text).Replace("/", "").Replace(":", "");
+                    var uri = lstMain.SelectedItems[0].SubItems[3].Text;
+
+                    var ret = DownloadStandard(filePath, uri);
+                    Cursor = Cursors.Default;
+                    if(ret)
+                    {
+                        Process.Start(filePath);
+                    }
+                    SetFormTitle();
+                    break;
             }
-            
-            SetFormTitle();
         }
 
         private void txtKeyword_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == 27)
-                txtKeyword.Clear();
+            if (e.KeyChar == 27) txtKeyword.Clear();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -209,13 +224,19 @@ namespace SEG_SD
             lstMain.ListViewItemSorter = new ListViewColumnSorter();
             lstMain.ColumnClick += ListViewHelper.ListView_ColumnClick;
         }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+            Process.Start(Environment.CurrentDirectory);
+        }
+        
     }
 }
 
 namespace Common
 {
     /// <summary>
-    ///     对ListView点击列标题自动排序功能
+    /// 对ListView点击列标题自动排序功能
     /// </summary>
     public class ListViewHelper
     {
@@ -223,168 +244,148 @@ namespace Common
         {
             var lv = sender as ListView;
             // 检查点击的列是不是现在的排序列.
-            if (e.Column == (lv.ListViewItemSorter as ListViewColumnSorter).SortColumn)
+            if (null != lv  && e.Column == ((ListViewColumnSorter) lv.ListViewItemSorter).SortColumn)
             {
                 // 重新设置此列的排序方法.
-                if ((lv.ListViewItemSorter as ListViewColumnSorter).Order == SortOrder.Ascending)
-                {
-                    (lv.ListViewItemSorter as ListViewColumnSorter).Order = SortOrder.Descending;
-                }
-                else
-                {
-                    (lv.ListViewItemSorter as ListViewColumnSorter).Order = SortOrder.Ascending;
-                }
+                ((ListViewColumnSorter) lv.ListViewItemSorter).Order = ((ListViewColumnSorter) lv.ListViewItemSorter).Order == SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
             }
             else
             {
                 // 设置排序列，默认为正向排序
-                (lv.ListViewItemSorter as ListViewColumnSorter).SortColumn = e.Column;
-                (lv.ListViewItemSorter as ListViewColumnSorter).Order = SortOrder.Ascending;
+                if (null != lv)
+                {
+                    ((ListViewColumnSorter) lv.ListViewItemSorter).SortColumn = e.Column;
+                    ((ListViewColumnSorter) lv.ListViewItemSorter).Order = SortOrder.Ascending;
+                }
             }
             // 用新的排序方法对ListView排序
-            ((ListView) sender).Sort();
+            ((ListView)sender).Sort();
+
         }
     }
 
     /// <summary>
-    ///     继承自IComparer
+    /// 继承自IComparer
     /// </summary>
     public class ListViewColumnSorter : IComparer
     {
         /// <summary>
-        ///     声明CaseInsensitiveComparer类对象
+        /// 声明CaseInsensitiveComparer类对象
         /// </summary>
-        private readonly CaseInsensitiveComparer ObjectCompare;
+        private readonly CaseInsensitiveComparer _objectCompare;
 
         /// <summary>
-        ///     指定按照哪个列排序
-        /// </summary>
-        private int ColumnToSort;
-
-        /// <summary>
-        ///     指定排序的方式
-        /// </summary>
-        private SortOrder OrderOfSort;
-
-        /// <summary>
-        ///     构造函数
+        /// 构造函数
         /// </summary>
         public ListViewColumnSorter()
         {
             // 默认按第一列排序
-            ColumnToSort = 0;
+            SortColumn = 0;
             // 排序方式为不排序
-            OrderOfSort = SortOrder.None;
+            Order = SortOrder.None;
             // 初始化CaseInsensitiveComparer类对象
-            ObjectCompare = new CaseInsensitiveComparer();
+            _objectCompare = new CaseInsensitiveComparer();
         }
 
         /// <summary>
-        ///     获取或设置按照哪一列排序.
+        /// 获取或设置按照哪一列排序
         /// </summary>
-        public int SortColumn
-        {
-            set { ColumnToSort = value; }
-            get { return ColumnToSort; }
-        }
+        public int SortColumn { set; get; }
 
         /// <summary>
-        ///     获取或设置排序方式.
+        /// 获取或设置排序方式
         /// </summary>
-        public SortOrder Order
-        {
-            set { OrderOfSort = value; }
-            get { return OrderOfSort; }
-        }
+        public SortOrder Order { set; get; }
 
         /// <summary>
-        ///     重写IComparer接口.
+        /// 重写IComparer接口
         /// </summary>
-        /// <param name="x">要比较的第一个对象</param>
-        /// <param name="y">要比较的第二个对象</param>
+        /// <param name="ipx">要比较的第一个对象</param>
+        /// <param name="ipy">要比较的第二个对象</param>
         /// <returns>比较的结果.如果相等返回0，如果x大于y返回1，如果x小于y返回-1</returns>
-        public int Compare(object x, object y)
+        public int Compare(object ipx, object ipy)
         {
             int compareResult;
             // 将比较对象转换为ListViewItem对象
-            var listviewX = (ListViewItem) x;
-            var listviewY = (ListViewItem) y;
-            var xText = listviewX.SubItems[ColumnToSort].Text;
-            var yText = listviewY.SubItems[ColumnToSort].Text;
+            var listviewX = (ListViewItem)ipx;
+            var listviewY = (ListViewItem)ipy;
+            var xText = listviewX.SubItems[SortColumn].Text;
+            var yText = listviewY.SubItems[SortColumn].Text;
             int xInt, yInt;
             // 比较,如果值为IP地址，则根据IP地址的规则排序。
-            if (IsIP(xText) && IsIP(yText))
+            if (IsIp(xText) && IsIp(yText))
             {
                 compareResult = CompareIp(xText, yText);
             }
             else if (int.TryParse(xText, out xInt) && int.TryParse(yText, out yInt)) //是否全为数字
-            {
-                //比较数字
+            { 
+                // 比较数字
                 compareResult = CompareInt(xInt, yInt);
             }
             else
             {
-                //比较对象
-                compareResult = ObjectCompare.Compare(xText, yText);
+                // 比较对象
+                compareResult = _objectCompare.Compare(xText, yText);
             }
             // 根据上面的比较结果返回正确的比较结果
-            if (OrderOfSort == SortOrder.Ascending)
+            switch (Order)
             {
-                // 因为是正序排序，所以直接返回结果
-                return compareResult;
+                case SortOrder.Ascending:
+                    // 因为是正序排序，所以直接返回结果
+                    return compareResult;
+                case SortOrder.Descending:
+                    // 如果是反序排序，所以要取负值再返回
+                    return (-compareResult);
             }
-            if (OrderOfSort == SortOrder.Descending)
-            {
-                // 如果是反序排序，所以要取负值再返回
-                return (-compareResult);
-            }
+
             // 如果相等返回0
             return 0;
         }
 
         /// <summary>
-        ///     判断是否为正确的IP地址，IP范围（0.0.0.0～255.255.255）
+        /// 判断是否为正确的IP地址，IP范围（0.0.0.0～255.255.255）
         /// </summary>
         /// <param name="ip">需验证的IP地址</param>
         /// <returns></returns>
-        public bool IsIP(String ip)
+        public bool IsIp(string ip)
         {
-            return
-                Regex.Match(ip,
+            return Regex.Match(ip,
                     @"^(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])$")
                     .Success;
         }
 
         /// <summary>
-        ///     比较两个数字的大小
+        /// 比较两个数字的大小
         /// </summary>
         /// <param name="ipx">要比较的第一个对象</param>
         /// <param name="ipy">要比较的第二个对象</param>
         /// <returns>比较的结果.如果相等返回0，如果x大于y返回1，如果x小于y返回-1</returns>
-        private int CompareInt(int x, int y)
+        public static int CompareInt(int ipx, int ipy)
         {
-            if (x > y)
+            if (ipx > ipy)
             {
                 return 1;
             }
-            if (x < y)
+            if (ipx < ipy)
             {
                 return -1;
             }
+
             return 0;
         }
 
         /// <summary>
-        ///     比较两个IP地址的大小
+        /// 比较两个IP地址的大小
         /// </summary>
         /// <param name="ipx">要比较的第一个对象</param>
         /// <param name="ipy">要比较的第二个对象</param>
         /// <returns>比较的结果.如果相等返回0，如果x大于y返回1，如果x小于y返回-1</returns>
-        private int CompareIp(string ipx, string ipy)
+        public static int CompareIp(string ipx, string ipy)
         {
-            string[] ipxs = ipx.Split('.');
-            string[] ipys = ipy.Split('.');
-            for (int i = 0; i < 4; i++)
+            var ipxs = ipx.Split('.');
+            var ipys = ipy.Split('.');
+
+            for (var i = 0; i < 4; i++)
             {
                 if (Convert.ToInt32(ipxs[i]) > Convert.ToInt32(ipys[i]))
                 {
@@ -395,6 +396,7 @@ namespace Common
                     return -1;
                 }
             }
+
             return 0;
         }
     }

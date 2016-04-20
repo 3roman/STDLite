@@ -1,4 +1,4 @@
-﻿namespace SEG_SD
+﻿namespace STDLite
 {
     partial class FrMain
     {
@@ -108,6 +108,7 @@
             this.label1.Size = new System.Drawing.Size(83, 12);
             this.label1.TabIndex = 4;
             this.label1.Text = "标准号/标准名";
+            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // FrMain
             // 
@@ -124,6 +125,7 @@
             this.MaximizeBox = false;
             this.Name = "FrMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.TopMost = true;
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

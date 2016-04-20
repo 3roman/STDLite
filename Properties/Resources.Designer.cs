@@ -61,12 +61,42 @@ namespace STDLite.Properties {
         }
         
         /// <summary>
-        ///   查找 System.Byte[] 类型的本地化资源。
+        ///   查找类似于 True 的 System.Boolean 类型的本地化资源。
         /// </summary>
-        internal static byte[] HtmlAgilityPack {
+        internal static bool btnSearch_Locked {
             get {
-                object obj = ResourceManager.GetObject("HtmlAgilityPack", resourceCulture);
-                return ((byte[])(obj));
+                object obj = ResourceManager.GetObject("btnSearch.Locked", resourceCulture);
+                return ((bool)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似于 True 的 System.Boolean 类型的本地化资源。
+        /// </summary>
+        internal static bool label1_Locked {
+            get {
+                object obj = ResourceManager.GetObject("label1.Locked", resourceCulture);
+                return ((bool)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似于 True 的 System.Boolean 类型的本地化资源。
+        /// </summary>
+        internal static bool lstMain_Locked {
+            get {
+                object obj = ResourceManager.GetObject("lstMain.Locked", resourceCulture);
+                return ((bool)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似于 True 的 System.Boolean 类型的本地化资源。
+        /// </summary>
+        internal static bool txtKeyword_Locked {
+            get {
+                object obj = ResourceManager.GetObject("txtKeyword.Locked", resourceCulture);
+                return ((bool)(obj));
             }
         }
     }
