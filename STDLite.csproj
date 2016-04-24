@@ -85,8 +85,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\HtmlAgilityPack.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="SEG_SD.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
