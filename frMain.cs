@@ -23,6 +23,9 @@ namespace STDLite
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             InitializeComponent();
             SetFormTitle();
+
+            lstMain.ListViewItemSorter = new ListViewColumnSorter();
+            lstMain.ColumnClick += ListViewHelper.ListView_ColumnClick;
         }
 
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
@@ -47,30 +50,50 @@ namespace STDLite
                 Application.ProductVersion);
         }
 
-        private string RetrieveHtml(string url, string data = "", bool get = true)
+        private void txtKeyword_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == 27) txtKeyword.Clear();
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+            Process.Start(Environment.CurrentDirectory);
+        }
+
+        /// <summary>
+        /// 下载网页源码
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="postData">post数据</param>
+        /// <returns></returns>
+        private static string RetrieveHtml(string url, string postData = "")
         {
             var wc = new WebClient();
-            wc.Headers.Add("Content-Type", "application/ipx-www-form-urlencoded");
-            var postData = Encoding.UTF8.GetBytes(data);
-            byte[] datas;
+            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+            byte[] html;
             try
             {
-                datas = get ? wc.DownloadData(url) : wc.UploadData(url, "POST", postData);
+                html = postData == string.Empty ? wc.DownloadData(url) : wc.UploadData(url, "POST", Encoding.UTF8.GetBytes(postData));
             }
             catch (Exception ex)
             {
-                SetFormTitle();
-                MessageBox.Show(ex.Message);
+                Console.WriteLine(ex.Message);
                 throw;
             }
 
-            return Encoding.UTF8.GetString(datas);
+            return Encoding.UTF8.GetString(html);
         }
 
-        private static bool DownloadStandard(string filePath, string url)
+        /// <summary>
+        /// 下载文件
+        /// </summary>
+        /// <param name="filePath">保存路径</param>
+        /// <param name="uri">uri</param>
+        /// <returns></returns>
+        private static bool DownloadFile(string filePath, string uri)
         {
             var wc = new WebClient();
-            var datas = wc.DownloadData(url);
+            var datas = wc.DownloadData(uri);
             if (10000 > datas.Length) // URI不存在给出提示
             {
                 MessageBox.Show("/(ㄒoㄒ)/~~SEG标准库暂未收录该标准!", "友情提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -99,9 +122,8 @@ namespace STDLite
 
         public void GetStandard(string url, ref List<object> items)
         {
-            const string postData =
-                @"__EVENTTARGET=stdlist%24lbtn_refresh_1&__VIEWSTATE=%2FwEPDwULLTE2NjMyMjA0OTYPZBYCAgEPZBYEZg8PZBYCHgVzdHlsZQUkbWFyZ2luOjBweDtwYWRkaW5nOjBweDtkaXNwbGF5Om5vbmU7ZAIBDw9kFgIfAAUkZGlzcGxheTpub25lO21hcmdpbjowcHg7cGFkZGluZzowcHg7ZBgBBR5fX0NvbnRyb2xzUmVxdWlyZVBvc3RCYWNrS2V5X18WCwUdc3RkbGlzdCRTb3J0RmllbGRfUGVyZm9ybWRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX1B1Ymxpc2hkYXRlBR1zdGRsaXN0JFNvcnRGaWVsZF9QdWJsaXNoZGF0ZQUdc3RkbGlzdCRTb3J0RmllbGRfRXhwaXJlZGRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX0V4cGlyZWRkYXRlBRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRtzdGRsaXN0JFNvZnRGaWVsZF9WaWV3Q291bnQFG3N0ZGxpc3QkU29mdEZpZWxkX1ZpZXdDb3VudO8M73tN9IyZEmIzbo3Rt9RG6tux&__EVENTVALIDATION=%2FwEWKwLO8JzAAwKHpeXgAQL7pL24BAKLtoHNCAKH9772BgKR9%2FPABALA9NmOBwLgoYrZCQLA9N2OBwK9s4GIDgLI%2BY3QAgKX%2BOKqAgLh%2B4PaDQKdsbKgDgKi%2F46dBALzwuvZBgLJ2OjZBgKKy%2BGqDQLqycYZAv7lkOIDAurJyjkC%2FuWUggQC6sme8AEC%2FuW4uQUC6smikAIC%2FuW82QUC6smWsAEC%2FuWg%2BQQC6sma0AEC%2FuWkmQUC6smu6QIC%2FuWIsgYC6smyiQMC%2FuWM0gYC6smmsAIC%2FuWw%2BQUC6smq0AIC%2FuW0mQYCmPePxAoCwPThjgcC96GGwgYCwPTFjgcC5trLyAEB9COtPt6LDYSCzyGfSC34U4IzoA%3D%3D&stdlist%24txt_page_count_top=1000000";
-            var html = RetrieveHtml(url, postData, false);
+            var postData = "__EVENTTARGET=stdlist%24lbtn_refresh_2&__EVENTARGUMENT=&__VIEWSTATE=%2FwEPDwULLTE2NjMyMjA0OTYPZBYCAgEPZBYEZg8PZBYCHgVzdHlsZQUkbWFyZ2luOjBweDtwYWRkaW5nOjBweDtkaXNwbGF5Om5vbmU7ZAIBDw9kFgIfAAUkZGlzcGxheTpub25lO21hcmdpbjowcHg7cGFkZGluZzowcHg7ZBgBBR5fX0NvbnRyb2xzUmVxdWlyZVBvc3RCYWNrS2V5X18WCwUdc3RkbGlzdCRTb3J0RmllbGRfUGVyZm9ybWRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX1B1Ymxpc2hkYXRlBR1zdGRsaXN0JFNvcnRGaWVsZF9QdWJsaXNoZGF0ZQUdc3RkbGlzdCRTb3J0RmllbGRfRXhwaXJlZGRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX0V4cGlyZWRkYXRlBRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRtzdGRsaXN0JFNvZnRGaWVsZF9WaWV3Q291bnQFG3N0ZGxpc3QkU29mdEZpZWxkX1ZpZXdDb3VudO8M73tN9IyZEmIzbo3Rt9RG6tux&__EVENTVALIDATION=%2FwEWKwLO8JzAAwKHpeXgAQL7pL24BAKLtoHNCAKH9772BgKR9%2FPABALA9NmOBwLgoYrZCQLA9N2OBwK9s4GIDgLI%2BY3QAgKX%2BOKqAgLh%2B4PaDQKdsbKgDgKi%2F46dBALzwuvZBgLJ2OjZBgKKy%2BGqDQLqycYZAv7lkOIDAurJyjkC%2FuWUggQC6sme8AEC%2FuW4uQUC6smikAIC%2FuW82QUC6smWsAEC%2FuWg%2BQQC6sma0AEC%2FuWkmQUC6smu6QIC%2FuWIsgYC6smyiQMC%2FuWM0gYC6smmsAIC%2FuWw%2BQUC6smq0AIC%2FuW0mQYCmPePxAoCwPThjgcC96GGwgYCwPTFjgcC5trLyAEB9COtPt6LDYSCzyGfSC34U4IzoA%3D%3D&stdlist%24hd_dir=&stdlist%24hd_key=635983975871817969&stdlist%24txt_page_count_top=100000&stdlist%24txt_page_index_top=1&stdlist%24SortFieldGrp1=SortField_Performdate&stdlist%24cboSortDirection=%E9%99%8D%E5%BA%8F&stdlist%24txt_page_count_btm=10&stdlist%24txt_page_index_btm=1";
+            var html = RetrieveHtml(url, postData);
 
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
@@ -159,8 +181,6 @@ namespace STDLite
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            var items = new List<object>();
-
             var keyword = txtKeyword.Text.ToLower();
             keyword = keyword.Replace("gbt", "gb/t");
             keyword = keyword.Replace("dlt", "dl/t");
@@ -170,16 +190,16 @@ namespace STDLite
             txtKeyword.Text = keyword;
 
             Text = "努力检索中...马上就来";
-            var url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=0&pcnt=10000",
-                keyword);
+            var items = new List<object>();
+            // 搜索标准号
+            var url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=1&pcnt=10", keyword);
             GetStandard(url, ref items);
-            url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=1&pcnt=10000",
-                keyword);
+            // 搜索标准名
+            url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=0&pcnt=10", keyword);
             GetStandard(url, ref items);
             AddListItems(items);
 
             SetFormTitle();
-
         }
 
         private void lstMain_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -203,7 +223,7 @@ namespace STDLite
                         lstMain.SelectedItems[0].SubItems[1].Text).Replace("/", "").Replace(":", "");
                     var uri = lstMain.SelectedItems[0].SubItems[3].Text;
 
-                    var ret = DownloadStandard(filePath, uri);
+                    var ret = DownloadFile(filePath, uri);
                     Cursor = Cursors.Default;
                     if(ret)
                     {
@@ -212,22 +232,6 @@ namespace STDLite
                     SetFormTitle();
                     break;
             }
-        }
-
-        private void txtKeyword_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == 27) txtKeyword.Clear();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            lstMain.ListViewItemSorter = new ListViewColumnSorter();
-            lstMain.ColumnClick += ListViewHelper.ListView_ColumnClick;
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-            Process.Start(Environment.CurrentDirectory);
         }
         
     }
