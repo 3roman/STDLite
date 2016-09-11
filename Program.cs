@@ -14,7 +14,7 @@ namespace STDLite
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FrMain());
+            Application.Run(new FormMain());
         }
     }
 }
