@@ -1,4 +1,6 @@
-﻿using System;
+﻿using System.Runtime.InteropServices;
+using Common;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,22 +12,22 @@ using System.Reflection;
 using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows.Forms;
-using Common;
 using Microsoft.Win32;
 using htd = HtmlAgilityPack.HtmlDocument;
 
 namespace STDLite
 {
+    
+
     public partial class FormMain : Form
     {
         public FormMain()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-            InitializeComponent();
+            AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
 
-            ResetFormTitle();
+            InitializeComponent();
+            ResetUI();
 
             lstMain.ListViewItemSorter = new ListViewColumnSorter();
             lstMain.ColumnClick += ListViewHelper.ListView_ColumnClick;
@@ -36,7 +38,7 @@ namespace STDLite
 
         }
 
-        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private Assembly ResolveAssembly(object sender, ResolveEventArgs args)
         {
             var dllName = args.Name.Contains(",")
                 ? args.Name.Substring(0, args.Name.IndexOf(','))
@@ -50,141 +52,121 @@ namespace STDLite
             return Assembly.Load(buffer);
         }
 
-        private void ResetFormTitle()
+// ReSharper disable once InconsistentNaming
+        private void ResetUI()
         {
-            const string title = "{0}  V{1}   工艺系统室专版";
-            Text = string.Format(title,
+            Text = string.Format("{0}  V{1}   工艺系统室专版",
                 Application.ProductName,
                 Application.ProductVersion);
-        }
-
-        private void txtKeyword_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == 27) txtKeyword.Clear();
+            Cursor = Cursors.Default;
         }
 
         private static void Copy2Clipboard(string content)
         {
-            Clipboard.Clear(); // 清空剪切板内容
-            Clipboard.SetData(DataFormats.Text, content); // 复制内容到剪切板
+            Clipboard.Clear(); 
+            Clipboard.SetData(DataFormats.Text, content);
         }
 
-        private static bool DownloadFile(string fileName, string uri)
+        private static long GetContentLength(string url)
         {
-            if (File.Exists(fileName))
-            {
-                // 如果文件存在直接返回
-                return true;
-            }
-
-            //var md = new MultiDownload(5, uri, fileName);
-            //md.Start();
-
-            var wc = new WebClient();
-            var datas = wc.DownloadData(uri);
-            if (datas.Length < 10000) 
-            {
-                // URI不存在给出提示
-                MessageBox.Show("/(ㄒoㄒ)/~~SEG标准库暂未收录该标准!", "友情提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-            var fs = new FileStream(fileName, FileMode.Create);
-            fs.Write(datas, 0, datas.Length);
-            fs.Close();
-
-            return true;
-        }
-
-        private static string AddBlank(string number)
-        {
-            if (number.Length > 0 && char.IsLetter(number.First()))
-            {
-                foreach (var c in number.Where(char.IsDigit))
-                {
-                    return number.Insert(number.IndexOf(c), " ");
-                }
-            }
-
-            return number;
-        }
-
-        /// <summary>
-        ///     下载网页源码
-        /// </summary>
-        /// <param name="url">url</param>
-        /// <param name="postData">post数据</param>
-        /// <returns></returns>
-        private string RetrieveHtml(string url, string postData="")
-        {
-            var htmlContent = string.Empty;
-            var wc = new WebClient();
-            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
             try
             {
-                var html = postData == string.Empty
-                    ? wc.DownloadData(url)
-                    : wc.UploadData(url, "POST", Encoding.UTF8.GetBytes(postData));
-                htmlContent = Encoding.UTF8.GetString(html);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("连接SEG标准网站失败", "报错提示", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                ResetFormTitle();
-            }
+                var req = (HttpWebRequest)WebRequest.CreateDefault(new Uri(url));
+                req.Method = "HEAD";
+                req.Timeout = 2500;
+                var res = (HttpWebResponse)req.GetResponse();
+                var length = 0L;
+                if (HttpStatusCode.OK == res.StatusCode)
+                {
+                    length = res.ContentLength;
+                }
 
-            return htmlContent;
+                res.Close();
+
+                return length;
+            }
+            catch (WebException)
+            {
+                return 0;
+            }
         }
 
-        private void GetStandard(string url, ref List<object> items)
+        private static void GetStandards(string url, string data, ref List<ListElement> elements)
         {
-            const string postData =
-                "__EVENTTARGET=stdlist%24lbtn_refresh_2&__EVENTARGUMENT=&__VIEWSTATE=%2FwEPDwULLTE2NjMyMjA0OTYPZBYCAgEPZBYEZg8PZBYCHgVzdHlsZQUkbWFyZ2luOjBweDtwYWRkaW5nOjBweDtkaXNwbGF5Om5vbmU7ZAIBDw9kFgIfAAUkZGlzcGxheTpub25lO21hcmdpbjowcHg7cGFkZGluZzowcHg7ZBgBBR5fX0NvbnRyb2xzUmVxdWlyZVBvc3RCYWNrS2V5X18WCwUdc3RkbGlzdCRTb3J0RmllbGRfUGVyZm9ybWRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX1B1Ymxpc2hkYXRlBR1zdGRsaXN0JFNvcnRGaWVsZF9QdWJsaXNoZGF0ZQUdc3RkbGlzdCRTb3J0RmllbGRfRXhwaXJlZGRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX0V4cGlyZWRkYXRlBRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRtzdGRsaXN0JFNvZnRGaWVsZF9WaWV3Q291bnQFG3N0ZGxpc3QkU29mdEZpZWxkX1ZpZXdDb3VudO8M73tN9IyZEmIzbo3Rt9RG6tux&__EVENTVALIDATION=%2FwEWKwLO8JzAAwKHpeXgAQL7pL24BAKLtoHNCAKH9772BgKR9%2FPABALA9NmOBwLgoYrZCQLA9N2OBwK9s4GIDgLI%2BY3QAgKX%2BOKqAgLh%2B4PaDQKdsbKgDgKi%2F46dBALzwuvZBgLJ2OjZBgKKy%2BGqDQLqycYZAv7lkOIDAurJyjkC%2FuWUggQC6sme8AEC%2FuW4uQUC6smikAIC%2FuW82QUC6smWsAEC%2FuWg%2BQQC6sma0AEC%2FuWkmQUC6smu6QIC%2FuWIsgYC6smyiQMC%2FuWM0gYC6smmsAIC%2FuWw%2BQUC6smq0AIC%2FuW0mQYCmPePxAoCwPThjgcC96GGwgYCwPTFjgcC5trLyAEB9COtPt6LDYSCzyGfSC34U4IzoA%3D%3D&stdlist%24hd_dir=&stdlist%24hd_key=635983975871817969&stdlist%24txt_page_count_top=100000&stdlist%24txt_page_index_top=1&stdlist%24SortFieldGrp1=SortField_Performdate&stdlist%24cboSortDirection=%E9%99%8D%E5%BA%8F&stdlist%24txt_page_count_btm=10&stdlist%24txt_page_index_btm=1";
-            var html = RetrieveHtml(url, postData);
+            var wc = new WebClient {Encoding = Encoding.UTF8};
+            //下面一句很关键，不然返回的东西不全
+            wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+            var html = wc.UploadData(new Uri(url), "POST", Encoding.UTF8.GetBytes(data));
 
             var doc = new htd();
-            doc.LoadHtml(html);
+            doc.LoadHtml(Encoding.UTF8.GetString(html));
 
-            const string xPath = "//a[@href]";
+            //const string xPath = "//a[@href]";
+            const string xPath = "//a[contains(@href,'/std/stdmgr.aspx')]";
             var nodes = doc.DocumentNode.SelectNodes(xPath);
-
-            foreach (var node in nodes)
+            if (null == nodes)
             {
-                if (!node.InnerText.Contains("---")) continue;
-                var innerText = node.InnerText.Replace("---", "^").Split('^');
-                items.Add(new
-                {
-                    // 标准号
-                    number = AddBlank(innerText[1].ToUpper()),
-                    // 标准名
-                    name = innerText[0],
-                    // 下载地址
-                    link = "http://10.113.1.69/std/showEBook.aspx?fileid=" +
-                           node.Attributes["href"].Value.Replace("../std/stdmgr.aspx?fileid=", ""),
-                    // 是否过期
-                    validate = node.ParentNode.ParentNode.ChildNodes[13].ChildNodes[1].InnerText.Replace("标准状态:", "")
-                });
+                return;
             }
 
-            items = items.Distinct().ToList();
+            elements.AddRange(from node in nodes
+                let innerTexts = node.InnerText.Replace("---", "^").Split('^')
+                select new ListElement
+                {
+                    // 标准号
+                    Number = innerTexts[1].ToUpper(),
+                    // 标准名
+                    Name = innerTexts[0],
+                    // 下载地址(由特定URL与id组成)
+                    Link = "http://10.113.1.69/std/showEBook.aspx?fileid=" + node.Attributes["href"].Value.Replace("../std/stdmgr.aspx?fileid=", ""),
+                    // 是否过期
+                    Validate = node.ParentNode.ParentNode.ChildNodes[13].ChildNodes[1].InnerText.Replace("标准状态:", "")
+                });
         }
 
-        private void AddListItems(IEnumerable<object> items)
+        private void DownloadFile(string uri, string filename)
+        {
+            var wc = new WebClient();
+            wc.DownloadProgressChanged += OnDownloadProgressChanged;
+            // 匿名委托使用外部变量，传递文件保存路径
+            wc.DownloadFileCompleted += (s, e) => OnDownloadFileCompleted(filename);
+            wc.DownloadFileAsync(new Uri(uri), filename);
+        }
+
+        private void OnDownloadFileCompleted(string filename)
+        {
+            if (File.Exists(filename))
+            {
+                Process.Start(filename);
+            }
+            
+            ResetUI();
+        }
+
+        private void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            var title = string.Format("下载进度：{0}%  >>>  {1}kB/{2}kB",
+                e.ProgressPercentage,
+                e.BytesReceived / 1024, 
+                e.TotalBytesToReceive / 1024 
+                );
+            Text = title;
+        }
+
+        private void FillList(IEnumerable<ListElement> elements)
         {
             lstMain.BeginUpdate();
             lstMain.Items.Clear();
 
-            foreach (var item in items)
+            foreach (var e in elements)
             {
-                // 通过反射获取匿名对象属性
-                var lvi = new ListViewItem(item.GetType().GetProperty("number").GetValue(item, null).ToString());
-                lvi.SubItems.Add(item.GetType().GetProperty("name").GetValue(item, null).ToString());
-                lvi.SubItems.Add(item.GetType().GetProperty("validate").GetValue(item, null).ToString());
-                lvi.SubItems.Add(item.GetType().GetProperty("link").GetValue(item, null).ToString());
+                var lvi = new ListViewItem(e.Number);
+                lvi.SubItems.Add(e.Name);
+                lvi.SubItems.Add(e.Validate);
+                lvi.SubItems.Add(e.Link);
                 lstMain.Items.Add(lvi);
-                switch (item.GetType().GetProperty("validate").GetValue(item, null).ToString())
+
+                switch (e.Validate)
                 {
                     case "未实施":
                         lvi.ForeColor = Color.Green;
@@ -200,41 +182,67 @@ namespace STDLite
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            var keyword = txtKeyword.Text.ToLower().Replace("t", "/t");
-            txtKeyword.Text = keyword;
 
-            Text = "努力检索中...马上就来";
-            var items = new List<object>();
+            if (GetContentLength("http://10.113.1.69/std/stdsearch.aspx") < 10000)
+            {
+                MessageBox.Show("SEG标准网站在维护中...", "报错提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var keyword = txtKeyword.Text;
+            if (!keyword.ToLower().Contains("/t"))
+            {
+                keyword = keyword.ToLower().Replace("t", "/t");
+                txtKeyword.Text = keyword;
+            }
+            
+            Text = "努力检索中......";
+            Cursor = Cursors.WaitCursor;
+            var elements = new List<ListElement>();
+            const string data = "__EVENTTARGET=stdlist%24lbtn_refresh_2&__EVENTARGUMENT=&__VIEWSTATE=%2FwEPDwULLTE2NjMyMjA0OTYPZBYCAgEPZBYEZg8PZBYCHgVzdHlsZQUkbWFyZ2luOjBweDtwYWRkaW5nOjBweDtkaXNwbGF5Om5vbmU7ZAIBDw9kFgIfAAUkZGlzcGxheTpub25lO21hcmdpbjowcHg7cGFkZGluZzowcHg7ZBgBBR5fX0NvbnRyb2xzUmVxdWlyZVBvc3RCYWNrS2V5X18WCwUdc3RkbGlzdCRTb3J0RmllbGRfUGVyZm9ybWRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX1B1Ymxpc2hkYXRlBR1zdGRsaXN0JFNvcnRGaWVsZF9QdWJsaXNoZGF0ZQUdc3RkbGlzdCRTb3J0RmllbGRfRXhwaXJlZGRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX0V4cGlyZWRkYXRlBRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRtzdGRsaXN0JFNvZnRGaWVsZF9WaWV3Q291bnQFG3N0ZGxpc3QkU29mdEZpZWxkX1ZpZXdDb3VudO8M73tN9IyZEmIzbo3Rt9RG6tux&__EVENTVALIDATION=%2FwEWKwLO8JzAAwKHpeXgAQL7pL24BAKLtoHNCAKH9772BgKR9%2FPABALA9NmOBwLgoYrZCQLA9N2OBwK9s4GIDgLI%2BY3QAgKX%2BOKqAgLh%2B4PaDQKdsbKgDgKi%2F46dBALzwuvZBgLJ2OjZBgKKy%2BGqDQLqycYZAv7lkOIDAurJyjkC%2FuWUggQC6sme8AEC%2FuW4uQUC6smikAIC%2FuW82QUC6smWsAEC%2FuWg%2BQQC6sma0AEC%2FuWkmQUC6smu6QIC%2FuWIsgYC6smyiQMC%2FuWM0gYC6smmsAIC%2FuWw%2BQUC6smq0AIC%2FuW0mQYCmPePxAoCwPThjgcC96GGwgYCwPTFjgcC5trLyAEB9COtPt6LDYSCzyGfSC34U4IzoA%3D%3D&stdlist%24hd_dir=&stdlist%24hd_key=635983975871817969&stdlist%24txt_page_count_top=100000&stdlist%24txt_page_index_top=1&stdlist%24SortFieldGrp1=SortField_Performdate&stdlist%24cboSortDirection=%E9%99%8D%E5%BA%8F&stdlist%24txt_page_count_btm=10&stdlist%24txt_page_index_btm=1";
             // 搜索标准号
             var url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=1&pcnt=10", keyword);
-            GetStandard(url, ref items);
+            GetStandards(url, data, ref elements);
             // 搜索标准名
             url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=0&pcnt=10", keyword);
-            GetStandard(url, ref items);
-            AddListItems(items);
-            
+            GetStandards(url, data, ref elements);
+            ResetUI();
+            FillList(elements);
         }
 
-        private void dgvMain_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void lstMain_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (MouseButtons.Left == e.Button)
+            if (e.Button == MouseButtons.Left)
             {
-                Cursor = Cursors.WaitCursor;
-                Text = "玩命下载中...稍安勿躁(*@ο@*)";
+                // 构造保存文件路径
                 // 获取注册表中的存放路径
                 var value = RegistryHelper.ReadValue(Registry.LocalMachine, "Software\\STDLite", "SavedDirectory");
-                var directoryPath = Directory.Exists(value) ? value : Environment.CurrentDirectory;
-                var fileName = directoryPath + "\\" +
+                var directory = Directory.Exists(value) ? value : Environment.CurrentDirectory;
+                var filename = directory + "\\" +
                                lstMain.SelectedItems[0].SubItems[0].Text + " " +
-                               (lstMain.SelectedItems[0].SubItems[1].Text).Replace("/", "").Replace(":", "") + ".pdf";
+                               lstMain.SelectedItems[0].SubItems[1].Text + ".pdf";
+                filename = filename.Replace("/", "");
+                
+                // 判断服务器上是否存在该文件
                 var uri = lstMain.SelectedItems[0].SubItems[3].Text;
-                var ret = DownloadFile(fileName, uri);
-                Cursor = Cursors.Default;
-                if (ret)
+                if (GetContentLength(uri) < 10000)
                 {
-                    Process.Start(fileName);
+                    MessageBox.Show("SEG标准库暂未收录该标准", "报错提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
                 }
-                ResetFormTitle();
+               
+
+                if (!File.Exists(filename))
+                {
+                    Cursor = Cursors.WaitCursor;
+                    DownloadFile(uri, filename);
+                }
+                else
+                {
+                    // 文件已下载，直接打开
+                    Process.Start(filename);
+                }
+                
             }
         }
 
@@ -276,32 +284,25 @@ namespace STDLite
             var value = RegistryHelper.ReadValue(Registry.LocalMachine, "Software\\STDLite", "SavedDirectory");
             var path = Directory.Exists(value) ? value : Environment.CurrentDirectory;
             // 构造文件名
-            var pdfName = string.Format("{0} {1}.pdf",
-                lstMain.SelectedItems[0].SubItems[0].Text,
-                lstMain.SelectedItems[0].SubItems[1].Text).Replace("/", "").Replace(":", "");
+            var pdfName = lstMain.SelectedItems[0].SubItems[0].Text + " " + lstMain.SelectedItems[0].SubItems[1].Text;
+            pdfName = pdfName.Replace("/", "");
             var sfd = new SaveFileDialog
             {
                 InitialDirectory = path, // 设置初始目录
+                Filter = "PDF文件|*.pdf|所有文件|*.*",
                 FileName = pdfName // 设置默认保存文件名
             };
 
-            if (sfd.ShowDialog() == DialogResult.OK)
-            {
-                Cursor = Cursors.WaitCursor;
-                Text = "玩命下载中...稍安勿躁(*@ο@*)";
-                var fileName = sfd.FileName;
-                var uri = lstMain.SelectedItems[0].SubItems[3].Text;
-                var ret = DownloadFile(fileName, uri);
-                if (ret)
-                {
-                    Process.Start(fileName);
-                }
-                ResetFormTitle();
-                Cursor = Cursors.Default;
-                // 存储此次保存的路径
-                var savedDirectory = fileName.Substring(0, fileName.LastIndexOf("\\", StringComparison.Ordinal));
-                RegistryHelper.SetValue(Registry.LocalMachine, "Software\\STDLite", "SavedDirectory", savedDirectory);
-            }
+            if (sfd.ShowDialog() != DialogResult.OK) return;
+
+            Cursor = Cursors.WaitCursor;
+            var filename = sfd.FileName;
+            var url = lstMain.SelectedItems[0].SubItems[3].Text;
+            DownloadFile(url, filename);
+            
+            // 存储此次保存的路径
+            var savedDirectory = filename.Substring(0, filename.LastIndexOf("\\", StringComparison.Ordinal));
+            RegistryHelper.SetValue(Registry.LocalMachine, "Software\\STDLite", "SavedDirectory", savedDirectory);
         }
 
         private void munOpenSavedDirectory_Click(object sender, EventArgs e)
@@ -312,17 +313,44 @@ namespace STDLite
 
         private void mnuCheckUpdate_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("功能开发中....");
+            Process.Start("http://10.151.130.55/forum.php?mod=viewthread&tid=443&page=1");
+        }
+        
+        private void mnuAbout_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void txtKeyword_KeyDown(object sender, KeyEventArgs e)
+        {
+            if ("关键字示例：【SHT 3405】【发电厂设计规范】【化工 泵】" == txtKeyword.Text)
+            {
+                txtKeyword.ForeColor = Color.Black;
+                txtKeyword.Clear();
+            }
+            else if (e.KeyData == Keys.Escape)
+            {
+                txtKeyword.Clear();
+            }
         }
     }
 }
 
 namespace Common
 {
+    class ListElement
+    {
+        public string Name;
+        public string Number;
+        public string Link;
+        public string Validate;
+
+    }
+
     /// <summary>
-    ///     对ListView点击列标题自动排序功能
+    /// 对ListView点击列标题自动排序功能
     /// </summary>
-    public class ListViewHelper
+    class ListViewHelper
     {
         public static void ListView_ColumnClick(object sender, ColumnClickEventArgs e)
         {
@@ -353,7 +381,7 @@ namespace Common
     /// <summary>
     ///     继承自IComparer
     /// </summary>
-    public class ListViewColumnSorter : IComparer
+    class ListViewColumnSorter : IComparer
     {
         /// <summary>
         ///     声明CaseInsensitiveComparer类对象
@@ -521,6 +549,7 @@ namespace Common
                 if (null != subKey)
                 {
                     var subKeys = subKey.GetSubKeyNames();
+                    // ReSharper disable once UnusedVariable
                     foreach (var x in subKeys.Where(x => x == name))
                     {
                         subKey.DeleteSubKeyTree(name);
@@ -547,158 +576,4 @@ namespace Common
         }
     }
 
-    public class MultiDownload
-    {
-        /// <summary>
-        ///     构造函数
-        /// </summary>
-        /// <param name="threahNum">线程数量</param>
-        /// <param name="fileUrl">文件Url路径</param>
-        /// <param name="savePath">本地保存路径</param>
-        public MultiDownload(int threahNum, string fileUrl, string savePath)
-        {
-            ThreadNum = threahNum;
-            _thread = new Thread[threahNum];
-            _fileUrl = fileUrl;
-            SavePath = savePath;
-        }
-
-        public void Start()
-        {
-            var request = (HttpWebRequest) WebRequest.Create(_fileUrl);
-            var response = (HttpWebResponse) request.GetResponse();
-            FileSize = response.ContentLength;
-            var singelNum = (int) (FileSize/ThreadNum); //平均分配
-            var remainder = (int) (FileSize%ThreadNum); //获取剩余的
-            request.Abort();
-            response.Close();
-            for (var i = 0; i < ThreadNum; i++)
-            {
-                var range = new List<int> {i*singelNum};
-                if (remainder != 0 && (ThreadNum - 1) == i) //剩余的交给最后一个线程
-                    range.Add(i*singelNum + singelNum + remainder - 1);
-                else
-                    range.Add(i*singelNum + singelNum - 1);
-                //下载指定位置的数据
-                int[] ran = {range[0], range[1]};
-                _thread[i] = new Thread(Download)
-                {
-                    Name = Path.GetFileNameWithoutExtension(_fileUrl) +
-                           "_{0}".Replace("{0}", Convert.ToString(i + 1))
-                };
-                _thread[i].Start(ran);
-            }
-        }
-
-        private void Download(object obj)
-        {
-            Stream httpFileStream = null, localFileStram = null;
-            try
-            {
-                var ran = obj as int[];
-                var tmpFileBlock = Path.GetTempPath() + Thread.CurrentThread.Name + ".tmp";
-                _tempFiles.Add(tmpFileBlock);
-                var httprequest = (HttpWebRequest) WebRequest.Create(_fileUrl);
-                if (ran != null) httprequest.AddRange(ran[0], ran[1]);
-                var httpresponse = (HttpWebResponse) httprequest.GetResponse();
-                httpFileStream = httpresponse.GetResponseStream();
-                localFileStram = new FileStream(tmpFileBlock, FileMode.Create);
-                var by = new byte[5000];
-                if (httpFileStream != null)
-                {
-                    var getByteSize = httpFileStream.Read(@by, 0, @by.Length); //Read方法将返回读入by变量中的总字节数
-                    while (getByteSize > 0)
-                    {
-                        Thread.Sleep(20);
-                        lock (_locker) _downloadSize += getByteSize;
-                        localFileStram.Write(@by, 0, getByteSize);
-                        getByteSize = httpFileStream.Read(@by, 0, @by.Length);
-                    }
-                }
-                lock (_locker) _threadCompleteNum++;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-            finally
-            {
-                if (httpFileStream != null) httpFileStream.Dispose();
-                if (localFileStram != null) localFileStram.Dispose();
-            }
-            if (_threadCompleteNum == ThreadNum)
-            {
-                Complete();
-                IsComplete = true;
-            }
-        }
-
-        /// <summary>
-        ///     下载完成后合并文件块
-        /// </summary>
-        private void Complete()
-        {
-            Stream mergeFile = new FileStream(SavePath, FileMode.Create);
-            var addWriter = new BinaryWriter(mergeFile);
-            foreach (var file in _tempFiles)
-            {
-                using (var fs = new FileStream(file, FileMode.Open))
-                {
-                    var tempReader = new BinaryReader(fs);
-                    addWriter.Write(tempReader.ReadBytes((int) fs.Length));
-                    tempReader.Close();
-                }
-                File.Delete(file);
-            }
-            addWriter.Close();
-        }
-
-        #region 变量
-
-        private readonly string _fileUrl; //文件地址
-        private short _threadCompleteNum; //线程完成数量
-        private volatile int _downloadSize; //当前下载大小(实时的)
-        private readonly Thread[] _thread; //线程数组
-        private readonly List<string> _tempFiles = new List<string>();
-        private readonly object _locker = new object();
-
-        #endregion
-
-        #region 属性
-
-        /// <summary>
-        ///     文件名
-        /// </summary>
-        public string FileName { get; set; }
-
-        /// <summary>
-        ///     文件大小
-        /// </summary>
-        public long FileSize { get; private set; }
-
-        /// <summary>
-        ///     当前下载大小(实时的)
-        /// </summary>
-        public int DownloadSize
-        {
-            get { return _downloadSize; }
-        }
-
-        /// <summary>
-        ///     是否完成
-        /// </summary>
-        public bool IsComplete { get; private set; }
-
-        /// <summary>
-        ///     线程数量
-        /// </summary>
-        public int ThreadNum { get; private set; }
-
-        /// <summary>
-        ///     保存路径
-        /// </summary>
-        public string SavePath { get; set; }
-
-        #endregion
-    }
 }

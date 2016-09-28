@@ -45,10 +45,10 @@
             this.munSaveAs = new System.Windows.Forms.ToolStripMenuItem();
             this.munOpenSavedDirectory = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.mnuCheckUpdate = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuOnTop = new System.Windows.Forms.ToolStripMenuItem();
-            this.label1 = new System.Windows.Forms.Label();
+            this.mnuCheckUpdate = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuAbout = new System.Windows.Forms.ToolStripMenuItem();
+            this.label1 = new System.Windows.Forms.Label();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -65,11 +65,15 @@
             // 
             // txtKeyword
             // 
+            this.txtKeyword.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.txtKeyword.ForeColor = System.Drawing.SystemColors.ActiveBorder;
             this.txtKeyword.Location = new System.Drawing.Point(95, 6);
             this.txtKeyword.Name = "txtKeyword";
             this.txtKeyword.Size = new System.Drawing.Size(429, 21);
             this.txtKeyword.TabIndex = 1;
-            this.txtKeyword.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtKeyword_KeyPress);
+            this.txtKeyword.TabStop = false;
+            this.txtKeyword.Text = "关键字示例：【SHT 3405】【发电厂设计规范】【化工 泵】";
+            this.txtKeyword.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtKeyword_KeyDown);
             // 
             // lstMain
             // 
@@ -89,7 +93,7 @@
             this.lstMain.TabStop = false;
             this.lstMain.UseCompatibleStateImageBehavior = false;
             this.lstMain.View = System.Windows.Forms.View.Details;
-            this.lstMain.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.dgvMain_MouseDoubleClick);
+            this.lstMain.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lstMain_MouseDoubleClick);
             // 
             // columnHeader2
             // 
@@ -128,67 +132,74 @@
             this.mnuCheckUpdate,
             this.mnuAbout});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(149, 192);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 214);
             // 
             // munCopySTDId
             // 
             this.munCopySTDId.Name = "munCopySTDId";
-            this.munCopySTDId.Size = new System.Drawing.Size(148, 22);
+            this.munCopySTDId.Size = new System.Drawing.Size(152, 22);
             this.munCopySTDId.Text = "复制标准号";
             this.munCopySTDId.Click += new System.EventHandler(this.munCopySTDId_Click);
             // 
             // munCopySTDName
             // 
             this.munCopySTDName.Name = "munCopySTDName";
-            this.munCopySTDName.Size = new System.Drawing.Size(148, 22);
+            this.munCopySTDName.Size = new System.Drawing.Size(152, 22);
             this.munCopySTDName.Text = "复制标准名";
             this.munCopySTDName.Click += new System.EventHandler(this.munCopySTDName_Click);
             // 
             // munCopySTD
             // 
             this.munCopySTD.Name = "munCopySTD";
-            this.munCopySTD.Size = new System.Drawing.Size(148, 22);
+            this.munCopySTD.Size = new System.Drawing.Size(152, 22);
             this.munCopySTD.Text = "复制标准全称";
             this.munCopySTD.Click += new System.EventHandler(this.munCopySTD_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(145, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(149, 6);
             // 
             // munSaveAs
             // 
             this.munSaveAs.Name = "munSaveAs";
-            this.munSaveAs.Size = new System.Drawing.Size(148, 22);
+            this.munSaveAs.Size = new System.Drawing.Size(152, 22);
             this.munSaveAs.Text = "另存为";
             this.munSaveAs.Click += new System.EventHandler(this.munSaveAs_Click);
             // 
             // munOpenSavedDirectory
             // 
             this.munOpenSavedDirectory.Name = "munOpenSavedDirectory";
-            this.munOpenSavedDirectory.Size = new System.Drawing.Size(148, 22);
+            this.munOpenSavedDirectory.Size = new System.Drawing.Size(152, 22);
             this.munOpenSavedDirectory.Text = "打开存放目录";
             this.munOpenSavedDirectory.Click += new System.EventHandler(this.munOpenSavedDirectory_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(145, 6);
-            // 
-            // mnuCheckUpdate
-            // 
-            this.mnuCheckUpdate.Name = "mnuCheckUpdate";
-            this.mnuCheckUpdate.Size = new System.Drawing.Size(148, 22);
-            this.mnuCheckUpdate.Text = "检查更新";
-            this.mnuCheckUpdate.Click += new System.EventHandler(this.mnuCheckUpdate_Click);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(149, 6);
             // 
             // mnuOnTop
             // 
             this.mnuOnTop.CheckOnClick = true;
             this.mnuOnTop.Name = "mnuOnTop";
-            this.mnuOnTop.Size = new System.Drawing.Size(148, 22);
+            this.mnuOnTop.Size = new System.Drawing.Size(152, 22);
             this.mnuOnTop.Text = "窗口置顶";
             this.mnuOnTop.Click += new System.EventHandler(this.mnuOnTop_Click);
+            // 
+            // mnuCheckUpdate
+            // 
+            this.mnuCheckUpdate.Name = "mnuCheckUpdate";
+            this.mnuCheckUpdate.Size = new System.Drawing.Size(152, 22);
+            this.mnuCheckUpdate.Text = "检查更新";
+            this.mnuCheckUpdate.Click += new System.EventHandler(this.mnuCheckUpdate_Click);
+            // 
+            // mnuAbout
+            // 
+            this.mnuAbout.Name = "mnuAbout";
+            this.mnuAbout.Size = new System.Drawing.Size(152, 22);
+            this.mnuAbout.Text = "关于本软件";
+            this.mnuAbout.Click += new System.EventHandler(this.mnuAbout_Click);
             // 
             // label1
             // 
@@ -198,12 +209,6 @@
             this.label1.Size = new System.Drawing.Size(83, 12);
             this.label1.TabIndex = 4;
             this.label1.Text = "标准号/标准名";
-            // 
-            // mnuAbout
-            // 
-            this.mnuAbout.Name = "mnuAbout";
-            this.mnuAbout.Size = new System.Drawing.Size(148, 22);
-            this.mnuAbout.Text = "关于本软件";
             // 
             // FormMain
             // 
