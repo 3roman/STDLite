@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Common;
+﻿using Common;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,7 +17,7 @@ using htd = HtmlAgilityPack.HtmlDocument;
 
 namespace STDLite
 {
-    
+
 
     public partial class FormMain : Form
     {
@@ -32,7 +31,7 @@ namespace STDLite
             lstMain.ListViewItemSorter = new ListViewColumnSorter();
             lstMain.ColumnClick += ListViewHelper.ListView_ColumnClick;
 
-            var value = RegistryHelper.ReadValue(Registry.LocalMachine, "Software\\STDLite", "OnTop");
+            var value = RegistryHelper.ReadValue(null, "Software\\STDLite", "OnTop");
             TopMost = "True" == value;
             mnuOnTop.Checked = "True" == value;
 
@@ -47,12 +46,12 @@ namespace STDLite
             if (dllName.EndsWith("_resources")) return null;
             var rsc = new ResourceManager(GetType().Namespace + ".Properties.Resources",
                 Assembly.GetExecutingAssembly());
-            var buffer = (byte[]) rsc.GetObject(dllName);
+            var buffer = (byte[])rsc.GetObject(dllName);
 
             return Assembly.Load(buffer);
         }
 
-// ReSharper disable once InconsistentNaming
+        // ReSharper disable once InconsistentNaming
         private void ResetUI()
         {
             Text = string.Format("{0}  V{1}   工艺系统室专版",
@@ -63,7 +62,7 @@ namespace STDLite
 
         private static void Copy2Clipboard(string content)
         {
-            Clipboard.Clear(); 
+            Clipboard.Clear();
             Clipboard.SetData(DataFormats.Text, content);
         }
 
@@ -73,7 +72,7 @@ namespace STDLite
             {
                 var req = (HttpWebRequest)WebRequest.CreateDefault(new Uri(url));
                 req.Method = "HEAD";
-                req.Timeout = 2500;
+                req.Timeout = 2000;
                 var res = (HttpWebResponse)req.GetResponse();
                 var length = 0L;
                 if (HttpStatusCode.OK == res.StatusCode)
@@ -93,7 +92,7 @@ namespace STDLite
 
         private static void GetStandards(string url, string data, ref List<ListElement> elements)
         {
-            var wc = new WebClient {Encoding = Encoding.UTF8};
+            var wc = new WebClient { Encoding = Encoding.UTF8 };
             //下面一句很关键，不然返回的东西不全
             wc.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
             var html = wc.UploadData(new Uri(url), "POST", Encoding.UTF8.GetBytes(data));
@@ -110,18 +109,18 @@ namespace STDLite
             }
 
             elements.AddRange(from node in nodes
-                let innerTexts = node.InnerText.Replace("---", "^").Split('^')
-                select new ListElement
-                {
-                    // 标准号
-                    Number = innerTexts[1].ToUpper(),
-                    // 标准名
-                    Name = innerTexts[0],
-                    // 下载地址(由特定URL与id组成)
-                    Link = "http://10.113.1.69/std/showEBook.aspx?fileid=" + node.Attributes["href"].Value.Replace("../std/stdmgr.aspx?fileid=", ""),
-                    // 是否过期
-                    Validate = node.ParentNode.ParentNode.ChildNodes[13].ChildNodes[1].InnerText.Replace("标准状态:", "")
-                });
+                              let innerTexts = node.InnerText.Replace("---", "^").Split('^')
+                              select new ListElement
+                              {
+                                  // 标准号
+                                  Number = innerTexts[1].ToUpper(),
+                                  // 标准名
+                                  Name = innerTexts[0],
+                                  // 下载地址(由特定URL与id组成)
+                                  Link = "http://10.113.1.69/std/showEBook.aspx?fileid=" + node.Attributes["href"].Value.Replace("../std/stdmgr.aspx?fileid=", ""),
+                                  // 是否过期
+                                  Validate = node.ParentNode.ParentNode.ChildNodes[13].ChildNodes[1].InnerText.Replace("标准状态:", "")
+                              });
         }
 
         private void DownloadFile(string uri, string filename)
@@ -135,11 +134,18 @@ namespace STDLite
 
         private void OnDownloadFileCompleted(string filename)
         {
-            if (File.Exists(filename))
+            var fi = new FileInfo(filename);
+            var fileLength = (float)fi.Length / 1024 ;
+
+            if (fileLength > 10)
             {
                 Process.Start(filename);
             }
-            
+            else
+            {
+                File.Delete(filename);
+                MessageBox.Show("SEG标准网站暂未收录该标准", "报错提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
             ResetUI();
         }
 
@@ -147,8 +153,8 @@ namespace STDLite
         {
             var title = string.Format("下载进度：{0}%  >>>  {1}kB/{2}kB",
                 e.ProgressPercentage,
-                e.BytesReceived / 1024, 
-                e.TotalBytesToReceive / 1024 
+                e.BytesReceived / 1024,
+                e.TotalBytesToReceive / 1024
                 );
             Text = title;
         }
@@ -182,8 +188,7 @@ namespace STDLite
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-
-            if (GetContentLength("http://10.113.1.69/std/stdsearch.aspx") < 10000)
+            if (GetContentLength("http://10.113.1.69/std/stdsearch.aspx") < 5000)
             {
                 MessageBox.Show("SEG标准网站在维护中...", "报错提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -195,7 +200,7 @@ namespace STDLite
                 keyword = keyword.ToLower().Replace("t", "/t");
                 txtKeyword.Text = keyword;
             }
-            
+
             Text = "努力检索中......";
             Cursor = Cursors.WaitCursor;
             var elements = new List<ListElement>();
@@ -216,25 +221,17 @@ namespace STDLite
             {
                 // 构造保存文件路径
                 // 获取注册表中的存放路径
-                var value = RegistryHelper.ReadValue(Registry.LocalMachine, "Software\\STDLite", "SavedDirectory");
+                var value = RegistryHelper.ReadValue(null, "Software\\STDLite", "SavedDirectory");
                 var directory = Directory.Exists(value) ? value : Environment.CurrentDirectory;
                 var filename = directory + "\\" +
                                lstMain.SelectedItems[0].SubItems[0].Text + " " +
                                lstMain.SelectedItems[0].SubItems[1].Text + ".pdf";
                 filename = filename.Replace("/", "");
-                
-                // 判断服务器上是否存在该文件
-                var uri = lstMain.SelectedItems[0].SubItems[3].Text;
-                if (GetContentLength(uri) < 10000)
-                {
-                    MessageBox.Show("SEG标准库暂未收录该标准", "报错提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-               
 
                 if (!File.Exists(filename))
                 {
                     Cursor = Cursors.WaitCursor;
+                    var uri = lstMain.SelectedItems[0].SubItems[3].Text;
                     DownloadFile(uri, filename);
                 }
                 else
@@ -242,21 +239,21 @@ namespace STDLite
                     // 文件已下载，直接打开
                     Process.Start(filename);
                 }
-                
+
             }
         }
 
         private void mnuOnTop_Click(object sender, EventArgs e)
         {
-            var value = RegistryHelper.ReadValue(Registry.LocalMachine, "Software\\STDLite", "OnTop");
+            var value = RegistryHelper.ReadValue(null, "Software\\STDLite", "OnTop");
             if ("True" == value)
             {
-                RegistryHelper.SetValue(Registry.LocalMachine, "Software\\STDLite", "OnTop", "False");
+                RegistryHelper.SetValue(null, "Software\\STDLite", "OnTop", "False");
                 TopMost = false;
             }
             else
             {
-                RegistryHelper.SetValue(Registry.LocalMachine, "Software\\STDLite", "OnTop", "True");
+                RegistryHelper.SetValue(null, "Software\\STDLite", "OnTop", "True");
                 TopMost = true;
             }
         }
@@ -281,7 +278,7 @@ namespace STDLite
         private void munSaveAs_Click(object sender, EventArgs e)
         {
             // 注册表中路径不存在则使用程序所在目录
-            var value = RegistryHelper.ReadValue(Registry.LocalMachine, "Software\\STDLite", "SavedDirectory");
+            var value = RegistryHelper.ReadValue(null, "Software\\STDLite", "SavedDirectory");
             var path = Directory.Exists(value) ? value : Environment.CurrentDirectory;
             // 构造文件名
             var pdfName = lstMain.SelectedItems[0].SubItems[0].Text + " " + lstMain.SelectedItems[0].SubItems[1].Text;
@@ -294,20 +291,19 @@ namespace STDLite
             };
 
             if (sfd.ShowDialog() != DialogResult.OK) return;
-
             Cursor = Cursors.WaitCursor;
             var filename = sfd.FileName;
-            var url = lstMain.SelectedItems[0].SubItems[3].Text;
-            DownloadFile(url, filename);
-            
+            var uri = lstMain.SelectedItems[0].SubItems[3].Text;
+            DownloadFile(uri, filename);
+
             // 存储此次保存的路径
             var savedDirectory = filename.Substring(0, filename.LastIndexOf("\\", StringComparison.Ordinal));
-            RegistryHelper.SetValue(Registry.LocalMachine, "Software\\STDLite", "SavedDirectory", savedDirectory);
+            RegistryHelper.SetValue(null, "Software\\STDLite", "SavedDirectory", savedDirectory);
         }
 
         private void munOpenSavedDirectory_Click(object sender, EventArgs e)
         {
-            var value = RegistryHelper.ReadValue(Registry.LocalMachine, "Software\\STDLite", "SavedDirectory");
+            var value = RegistryHelper.ReadValue(null, "Software\\STDLite", "SavedDirectory");
             Process.Start(Directory.Exists(value) ? value : Environment.CurrentDirectory);
         }
 
@@ -315,10 +311,10 @@ namespace STDLite
         {
             Process.Start("http://10.151.130.55/forum.php?mod=viewthread&tid=443&page=1");
         }
-        
+
         private void mnuAbout_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         private void txtKeyword_KeyDown(object sender, KeyEventArgs e)
@@ -356,11 +352,11 @@ namespace Common
         {
             var lv = sender as ListView;
             // 检查点击的列是不是现在的排序列.
-            if (null != lv && e.Column == ((ListViewColumnSorter) lv.ListViewItemSorter).SortColumn)
+            if (null != lv && e.Column == ((ListViewColumnSorter)lv.ListViewItemSorter).SortColumn)
             {
                 // 重新设置此列的排序方法.
-                ((ListViewColumnSorter) lv.ListViewItemSorter).Order =
-                    ((ListViewColumnSorter) lv.ListViewItemSorter).Order == SortOrder.Ascending
+                ((ListViewColumnSorter)lv.ListViewItemSorter).Order =
+                    ((ListViewColumnSorter)lv.ListViewItemSorter).Order == SortOrder.Ascending
                         ? SortOrder.Descending
                         : SortOrder.Ascending;
             }
@@ -369,12 +365,12 @@ namespace Common
                 // 设置排序列，默认为正向排序
                 if (null != lv)
                 {
-                    ((ListViewColumnSorter) lv.ListViewItemSorter).SortColumn = e.Column;
-                    ((ListViewColumnSorter) lv.ListViewItemSorter).Order = SortOrder.Ascending;
+                    ((ListViewColumnSorter)lv.ListViewItemSorter).SortColumn = e.Column;
+                    ((ListViewColumnSorter)lv.ListViewItemSorter).Order = SortOrder.Ascending;
                 }
             }
             // 用新的排序方法对ListView排序
-            ((ListView) sender).Sort();
+            ((ListView)sender).Sort();
         }
     }
 
@@ -421,8 +417,8 @@ namespace Common
         {
             int compareResult;
             // 将比较对象转换为ListViewItem对象
-            var listviewX = (ListViewItem) ipx;
-            var listviewY = (ListViewItem) ipy;
+            var listviewX = (ListViewItem)ipx;
+            var listviewY = (ListViewItem)ipy;
             var xText = listviewX.SubItems[SortColumn].Text;
             var yText = listviewY.SubItems[SortColumn].Text;
             int xInt, yInt;
@@ -515,17 +511,21 @@ namespace Common
         }
     }
 
-    internal class RegistryHelper
+    class RegistryHelper
     {
         public static string ReadValue(RegistryKey rootKey, string subkey, string name)
         {
             var value = string.Empty;
-            using (var subKey = rootKey.OpenSubKey(subkey, true))
+            if (null == rootKey) rootKey = Registry.LocalMachine;
+            try
             {
-                if (null != subKey)
-                {
-                    value = subKey.GetValue(name) + "";
-                }
+                var subKey = rootKey.OpenSubKey(subkey, true);
+                value = subKey.GetValue(name) + "";
+                subKey.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
 
             return value;
@@ -533,43 +533,53 @@ namespace Common
 
         public static void SetValue(RegistryKey rootKey, string subkey, string name, string value)
         {
-            using (var subKey = rootKey.CreateSubKey(subkey))
+            if (null == rootKey) rootKey = Registry.LocalMachine;
+            try
             {
-                if (null != subKey)
-                {
-                    subKey.SetValue(name, value);
-                }
+                var subKey = rootKey.CreateSubKey(subkey);
+                subKey.SetValue(name, value);
+                subKey.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
         public void DeleteKey(RegistryKey rootKey, string subkey, string name)
         {
-            using (var subKey = rootKey.OpenSubKey(subkey, true))
+            if (null == rootKey) rootKey = Registry.LocalMachine;
+            try
             {
-                if (null != subKey)
+                var subKey = rootKey.OpenSubKey(subkey, true);
+
+                var subKeys = subKey.GetSubKeyNames();
+                foreach (var x in subKeys.Where(x => x == name))
                 {
-                    var subKeys = subKey.GetSubKeyNames();
-                    // ReSharper disable once UnusedVariable
-                    foreach (var x in subKeys.Where(x => x == name))
-                    {
-                        subKey.DeleteSubKeyTree(name);
-                    }
+                    subKey.DeleteSubKeyTree(name);
                 }
+
+                subKey.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
         public bool IsKeyExist(RegistryKey rootKey, string subkey, string name)
         {
-            using (var subKey = rootKey.OpenSubKey(subkey, true))
+            if (null == rootKey) rootKey = Registry.LocalMachine;
+            try
             {
-                if (subKey != null)
-                {
-                    var subkeyNames = subKey.GetSubKeyNames();
-                    if (subkeyNames.Any(keyName => keyName == name))
-                    {
-                        return true;
-                    }
-                }
+                var subKey = rootKey.OpenSubKey(subkey, true);
+                var subkeyNames = subKey.GetSubKeyNames();
+                if (subkeyNames.Any(keyName => keyName == name)) return true;
+                subKey.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
 
             return false;
