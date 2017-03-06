@@ -46,13 +46,13 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.mnuTopMost = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuAbout = new System.Windows.Forms.ToolStripMenuItem();
-            this.label1 = new System.Windows.Forms.Label();
+            this.cbxStandard = new System.Windows.Forms.ComboBox();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnSearch
             // 
-            this.btnSearch.Location = new System.Drawing.Point(529, 5);
+            this.btnSearch.Location = new System.Drawing.Point(524, 5);
             this.btnSearch.Name = "btnSearch";
             this.btnSearch.Size = new System.Drawing.Size(75, 23);
             this.btnSearch.TabIndex = 0;
@@ -63,11 +63,11 @@
             // 
             // txtKeyword
             // 
-            this.txtKeyword.Font = new System.Drawing.Font("SimSun", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.txtKeyword.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.txtKeyword.ForeColor = System.Drawing.SystemColors.ActiveBorder;
-            this.txtKeyword.Location = new System.Drawing.Point(95, 6);
+            this.txtKeyword.Location = new System.Drawing.Point(85, 6);
             this.txtKeyword.Name = "txtKeyword";
-            this.txtKeyword.Size = new System.Drawing.Size(429, 21);
+            this.txtKeyword.Size = new System.Drawing.Size(434, 21);
             this.txtKeyword.TabIndex = 1;
             this.txtKeyword.TabStop = false;
             this.txtKeyword.Text = "示例：【SHT 3405】【发电厂设计规范】【化工 泵】";
@@ -84,10 +84,10 @@
             this.lstStandard.ContextMenuStrip = this.contextMenuStrip1;
             this.lstStandard.FullRowSelect = true;
             this.lstStandard.GridLines = true;
-            this.lstStandard.Location = new System.Drawing.Point(6, 32);
+            this.lstStandard.Location = new System.Drawing.Point(3, 33);
             this.lstStandard.MultiSelect = false;
             this.lstStandard.Name = "lstStandard";
-            this.lstStandard.Size = new System.Drawing.Size(600, 362);
+            this.lstStandard.Size = new System.Drawing.Size(596, 362);
             this.lstStandard.TabIndex = 3;
             this.lstStandard.TabStop = false;
             this.lstStandard.UseCompatibleStateImageBehavior = false;
@@ -97,12 +97,12 @@
             // colNumber
             // 
             this.colNumber.Text = "标准号";
-            this.colNumber.Width = 140;
+            this.colNumber.Width = 132;
             // 
             // colName
             // 
             this.colName.Text = "标准名";
-            this.colName.Width = 250;
+            this.colName.Width = 242;
             // 
             // colState
             // 
@@ -113,12 +113,12 @@
             // colReplacement
             // 
             this.colReplacement.Text = "替代说明";
-            this.colReplacement.Width = 135;
+            this.colReplacement.Width = 147;
             // 
             // colDownloadURL
             // 
             this.colDownloadURL.Text = "下载地址";
-            this.colDownloadURL.Width = 0;
+            this.colDownloadURL.Width = 4;
             // 
             // contextMenuStrip1
             // 
@@ -158,7 +158,7 @@
             // 
             this.munSaveAs.Name = "munSaveAs";
             this.munSaveAs.Size = new System.Drawing.Size(148, 22);
-            this.munSaveAs.Text = "另存为";
+            this.munSaveAs.Text = "标准另存为";
             this.munSaveAs.Click += new System.EventHandler(this.munSaveAs_Click);
             // 
             // toolStripSeparator2
@@ -182,25 +182,30 @@
             this.mnuAbout.Text = "关于本软件";
             this.mnuAbout.Click += new System.EventHandler(this.mnuAbout_Click);
             // 
-            // label1
+            // cbxStandard
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 10);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(83, 12);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "标准号/标准名";
+            this.cbxStandard.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxStandard.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.cbxStandard.FormattingEnabled = true;
+            this.cbxStandard.Items.AddRange(new object[] {
+            "标准号",
+            "标准名称"});
+            this.cbxStandard.Location = new System.Drawing.Point(3, 6);
+            this.cbxStandard.Name = "cbxStandard";
+            this.cbxStandard.Size = new System.Drawing.Size(76, 20);
+            this.cbxStandard.TabIndex = 4;
+            this.cbxStandard.TabStop = false;
             // 
             // FrmMain
             // 
             this.AcceptButton = this.btnSearch;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(610, 396);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.txtKeyword);
-            this.Controls.Add(this.lstStandard);
+            this.ClientSize = new System.Drawing.Size(602, 395);
+            this.Controls.Add(this.cbxStandard);
             this.Controls.Add(this.btnSearch);
+            this.Controls.Add(this.lstStandard);
+            this.Controls.Add(this.txtKeyword);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
@@ -220,7 +225,6 @@
         private System.Windows.Forms.ColumnHeader colNumber;
         private System.Windows.Forms.ColumnHeader colName;
         private System.Windows.Forms.ColumnHeader colDownloadURL;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ColumnHeader colReplacement;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem munCopyName;
@@ -231,6 +235,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem mnuAbout;
         private System.Windows.Forms.ColumnHeader colState;
+        private System.Windows.Forms.ComboBox cbxStandard;
     }
 }
 

@@ -28,9 +28,9 @@ namespace STDLite.Class
 
             byte[] ba;
             Assembly asm;
-            Assembly curAsm = Assembly.GetExecutingAssembly();
+            var curAsm = Assembly.GetExecutingAssembly();
 
-            using (Stream stm = curAsm.GetManifestResourceStream(embeddedResource))
+            using (var stm = curAsm.GetManifestResourceStream(embeddedResource))
             {
                 // Either the file is not existed or it is not mark as embedded resource
                 if (stm == null)
@@ -62,7 +62,7 @@ namespace STDLite.Class
             using (var sha1 = new SHA1CryptoServiceProvider())
             {
                 // Get the hash value from embedded DLL/assembly
-                string fileHash = BitConverter.ToString(sha1.ComputeHash(ba)).Replace("-", string.Empty);
+                var fileHash = BitConverter.ToString(sha1.ComputeHash(ba)).Replace("-", string.Empty);
             
                 // Define the temporary storage location of the DLL/assembly
                 tempFile = Path.GetTempPath() + fileName;
@@ -71,8 +71,8 @@ namespace STDLite.Class
                 if (File.Exists(tempFile))
                 {
                     // Get the hash value of the existed file
-                    byte[] bb = File.ReadAllBytes(tempFile);
-                    string fileHash2 = BitConverter.ToString(sha1.ComputeHash(bb)).Replace("-", string.Empty);
+                    var bb = File.ReadAllBytes(tempFile);
+                    var fileHash2 = BitConverter.ToString(sha1.ComputeHash(bb)).Replace("-", string.Empty);
 
                     // Compare the existed DLL/assembly with the Embedded DLL/assembly
                     fileOk = fileHash == fileHash2;

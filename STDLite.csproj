@@ -74,7 +74,8 @@
     <Compile Include="Class\Common.cs" />
     <Compile Include="Class\EmbeddedAssembly.cs" />
     <Compile Include="Class\ListViewHelper.cs" />
-    <Compile Include="Class\Standard.cs" />
+    <Compile Include="Class\NationalStandard.cs" />
+    <Compile Include="Class\SegStandard.cs" />
     <Compile Include="frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -107,7 +108,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Class\SEG.cs" />
+    <Compile Include="Class\StandardHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="STDLite.ico" />

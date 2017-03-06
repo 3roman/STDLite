@@ -1,10 +1,10 @@
-﻿namespace STDLite.Class
+﻿namespace STDLite
 {
-    class Standard
+    class SegStandard
     {
         public string Name;
         public string Number;
-        public string DownloadURL;
+        public string DownloadUrl;
         public string State;
         public string Replacement;
     }
