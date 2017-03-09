@@ -33,11 +33,11 @@
             this.btnSearch = new System.Windows.Forms.Button();
             this.txtKeyword = new System.Windows.Forms.TextBox();
             this.lstStandard = new System.Windows.Forms.ListView();
-            this.colNumber = new System.Windows.Forms.ColumnHeader();
-            this.colName = new System.Windows.Forms.ColumnHeader();
-            this.colState = new System.Windows.Forms.ColumnHeader();
-            this.colReplacement = new System.Windows.Forms.ColumnHeader();
-            this.colDownloadURL = new System.Windows.Forms.ColumnHeader();
+            this.colNumber = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colState = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colReplacement = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colDownloadURL = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.munCopyNumber = new System.Windows.Forms.ToolStripMenuItem();
             this.munCopyName = new System.Windows.Forms.ToolStripMenuItem();
@@ -46,8 +46,12 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.mnuTopMost = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuAbout = new System.Windows.Forms.ToolStripMenuItem();
-            this.cbxStandard = new System.Windows.Forms.ComboBox();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.ssDownloadPercent = new System.Windows.Forms.ToolStripStatusLabel();
+            this.ssProcessBar = new System.Windows.Forms.ToolStripProgressBar();
+            this.label1 = new System.Windows.Forms.Label();
             this.contextMenuStrip1.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnSearch
@@ -65,9 +69,9 @@
             // 
             this.txtKeyword.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.txtKeyword.ForeColor = System.Drawing.SystemColors.ActiveBorder;
-            this.txtKeyword.Location = new System.Drawing.Point(85, 6);
+            this.txtKeyword.Location = new System.Drawing.Point(92, 6);
             this.txtKeyword.Name = "txtKeyword";
-            this.txtKeyword.Size = new System.Drawing.Size(434, 21);
+            this.txtKeyword.Size = new System.Drawing.Size(425, 21);
             this.txtKeyword.TabIndex = 1;
             this.txtKeyword.TabStop = false;
             this.txtKeyword.Text = "示例：【SHT 3405】【发电厂设计规范】【化工 泵】";
@@ -84,10 +88,10 @@
             this.lstStandard.ContextMenuStrip = this.contextMenuStrip1;
             this.lstStandard.FullRowSelect = true;
             this.lstStandard.GridLines = true;
-            this.lstStandard.Location = new System.Drawing.Point(3, 33);
+            this.lstStandard.Location = new System.Drawing.Point(0, 33);
             this.lstStandard.MultiSelect = false;
             this.lstStandard.Name = "lstStandard";
-            this.lstStandard.Size = new System.Drawing.Size(596, 362);
+            this.lstStandard.Size = new System.Drawing.Size(602, 362);
             this.lstStandard.TabIndex = 3;
             this.lstStandard.TabStop = false;
             this.lstStandard.UseCompatibleStateImageBehavior = false;
@@ -182,19 +186,37 @@
             this.mnuAbout.Text = "关于本软件";
             this.mnuAbout.Click += new System.EventHandler(this.mnuAbout_Click);
             // 
-            // cbxStandard
+            // statusStrip1
             // 
-            this.cbxStandard.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbxStandard.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.cbxStandard.FormattingEnabled = true;
-            this.cbxStandard.Items.AddRange(new object[] {
-            "标准号",
-            "标准名称"});
-            this.cbxStandard.Location = new System.Drawing.Point(3, 6);
-            this.cbxStandard.Name = "cbxStandard";
-            this.cbxStandard.Size = new System.Drawing.Size(76, 20);
-            this.cbxStandard.TabIndex = 4;
-            this.cbxStandard.TabStop = false;
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ssDownloadPercent,
+            this.ssProcessBar});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 373);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(602, 22);
+            this.statusStrip1.TabIndex = 5;
+            this.statusStrip1.Text = "statusStrip1";
+            // 
+            // ssDownloadPercent
+            // 
+            this.ssDownloadPercent.Name = "ssDownloadPercent";
+            this.ssDownloadPercent.Size = new System.Drawing.Size(56, 17);
+            this.ssDownloadPercent.Text = "下载进度";
+            // 
+            // ssProcessBar
+            // 
+            this.ssProcessBar.MarqueeAnimationSpeed = 250;
+            this.ssProcessBar.Name = "ssProcessBar";
+            this.ssProcessBar.Size = new System.Drawing.Size(532, 16);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(4, 10);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(83, 12);
+            this.label1.TabIndex = 6;
+            this.label1.Text = "标准号/标准名";
             // 
             // FrmMain
             // 
@@ -202,7 +224,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(602, 395);
-            this.Controls.Add(this.cbxStandard);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnSearch);
             this.Controls.Add(this.lstStandard);
             this.Controls.Add(this.txtKeyword);
@@ -212,6 +235,8 @@
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.contextMenuStrip1.ResumeLayout(false);
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -235,7 +260,10 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem mnuAbout;
         private System.Windows.Forms.ColumnHeader colState;
-        private System.Windows.Forms.ComboBox cbxStandard;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel ssDownloadPercent;
+        private System.Windows.Forms.ToolStripProgressBar ssProcessBar;
+        private System.Windows.Forms.Label label1;
     }
 }
 
