@@ -50,6 +50,7 @@
             this.ssDownloadPercent = new System.Windows.Forms.ToolStripStatusLabel();
             this.ssProcessBar = new System.Windows.Forms.ToolStripProgressBar();
             this.label1 = new System.Windows.Forms.Label();
+            this.munExportToExcel = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -67,7 +68,7 @@
             // 
             // txtKeyword
             // 
-            this.txtKeyword.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.txtKeyword.Font = new System.Drawing.Font("SimSun", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.txtKeyword.ForeColor = System.Drawing.SystemColors.ActiveBorder;
             this.txtKeyword.Location = new System.Drawing.Point(92, 6);
             this.txtKeyword.Name = "txtKeyword";
@@ -132,57 +133,58 @@
             this.munCopyStandard,
             this.munSaveAs,
             this.toolStripSeparator2,
+            this.munExportToExcel,
             this.mnuTopMost,
             this.mnuAbout});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(149, 142);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 186);
             // 
             // munCopyNumber
             // 
             this.munCopyNumber.Name = "munCopyNumber";
-            this.munCopyNumber.Size = new System.Drawing.Size(148, 22);
+            this.munCopyNumber.Size = new System.Drawing.Size(152, 22);
             this.munCopyNumber.Text = "复制标准号";
             this.munCopyNumber.Click += new System.EventHandler(this.munCopyNumber_Click);
             // 
             // munCopyName
             // 
             this.munCopyName.Name = "munCopyName";
-            this.munCopyName.Size = new System.Drawing.Size(148, 22);
+            this.munCopyName.Size = new System.Drawing.Size(152, 22);
             this.munCopyName.Text = "复制标准名";
             this.munCopyName.Click += new System.EventHandler(this.munCopyName_Click);
             // 
             // munCopyStandard
             // 
             this.munCopyStandard.Name = "munCopyStandard";
-            this.munCopyStandard.Size = new System.Drawing.Size(148, 22);
+            this.munCopyStandard.Size = new System.Drawing.Size(152, 22);
             this.munCopyStandard.Text = "复制标准全称";
             this.munCopyStandard.Click += new System.EventHandler(this.munCopyStandard_Click);
             // 
             // munSaveAs
             // 
             this.munSaveAs.Name = "munSaveAs";
-            this.munSaveAs.Size = new System.Drawing.Size(148, 22);
+            this.munSaveAs.Size = new System.Drawing.Size(152, 22);
             this.munSaveAs.Text = "标准另存为";
             this.munSaveAs.Click += new System.EventHandler(this.munSaveAs_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(145, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(149, 6);
             // 
             // mnuTopMost
             // 
             this.mnuTopMost.CheckOnClick = true;
             this.mnuTopMost.Name = "mnuTopMost";
             this.mnuTopMost.ShowShortcutKeys = false;
-            this.mnuTopMost.Size = new System.Drawing.Size(148, 22);
+            this.mnuTopMost.Size = new System.Drawing.Size(152, 22);
             this.mnuTopMost.Text = "窗口置顶";
             this.mnuTopMost.Click += new System.EventHandler(this.mnuTopMost_Click);
             // 
             // mnuAbout
             // 
             this.mnuAbout.Name = "mnuAbout";
-            this.mnuAbout.Size = new System.Drawing.Size(148, 22);
+            this.mnuAbout.Size = new System.Drawing.Size(152, 22);
             this.mnuAbout.Text = "关于本软件";
             this.mnuAbout.Click += new System.EventHandler(this.mnuAbout_Click);
             // 
@@ -217,6 +219,13 @@
             this.label1.Size = new System.Drawing.Size(83, 12);
             this.label1.TabIndex = 6;
             this.label1.Text = "标准号/标准名";
+            // 
+            // munExportToExcel
+            // 
+            this.munExportToExcel.Name = "munExportToExcel";
+            this.munExportToExcel.Size = new System.Drawing.Size(152, 22);
+            this.munExportToExcel.Text = "导出为Excel";
+            this.munExportToExcel.Click += new System.EventHandler(this.munExportToExcel_Click);
             // 
             // FrmMain
             // 
@@ -264,6 +273,7 @@
         private System.Windows.Forms.ToolStripStatusLabel ssDownloadPercent;
         private System.Windows.Forms.ToolStripProgressBar ssProcessBar;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ToolStripMenuItem munExportToExcel;
     }
 }
 

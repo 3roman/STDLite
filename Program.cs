@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using STDLite.Class;
-
+using System.Threading;
 
 namespace STDLite
 {
@@ -13,12 +12,12 @@ namespace STDLite
         [STAThread]
         static void Main()
         {
-            //////////////////////////////////////////////////////////////////////////////////////
-            // 加载嵌入dll资源到内存
-            EmbeddedAssembly.Load("STDLite.Resource.HtmlAgilityPack.dll", "HtmlAgilityPack.dll");
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, senderArgs) => EmbeddedAssembly.Get(senderArgs.Name);
-            //////////////////////////////////////////////////////////////////////////////////////
-            
+            // 
+            new Thread(() => Utils.ScanPort("10.113.1.69", 80))
+             {
+                 IsBackground = true
+             }.Start();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmMain());

@@ -13,8 +13,6 @@ namespace STDLite
 {
     public partial class FrmMain : Form
     {
-        private readonly Func<string, int, int, bool> _mc = Utils.CheckPortAlive;
-
         public FrmMain()
         {
             InitializeComponent();
@@ -23,45 +21,28 @@ namespace STDLite
                 Application.ProductName,
                 Application.ProductVersion);
 
+            //var item = lstStandard.Items.Add("1-1");
+            //item.SubItems.Add("1-2");
+            //item.SubItems.Add("1-3");
+            //item.SubItems.Add("1-4");
+            //item.SubItems.Add("1-5");
+
             lstStandard.ListViewItemSorter = new ListViewColumnSorter();
             lstStandard.ColumnClick += ListViewHelper.ListView_ColumnClick;
-
-            _mc.BeginInvoke("10.113.1.69", 80, 5, onCompleted, null);
-        }
-
-        public void onCompleted(IAsyncResult ar)
-        {
-            var isAlive = _mc.EndInvoke(ar);
-            if (!isAlive)
-            {
-                MessageBox.Show("网站连接不上", "警告", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            Cursor = Cursors.WaitCursor;
-
-            var keyword = txtKeyword.Text.Replace("/", string.Empty);
             const string data = "__EVENTTARGET=stdlist%24lbtn_refresh_1&__VIEWSTATE=%2FwEPDwULLTE2NjMyMjA0OTYPZBYCAgEPZBYEZg8PZBYCHgVzdHlsZQUkbWFyZ2luOjBweDtwYWRkaW5nOjBweDtkaXNwbGF5Om5vbmU7ZAIBDw9kFgIfAAUkZGlzcGxheTpub25lO21hcmdpbjowcHg7cGFkZGluZzowcHg7ZBgBBR5fX0NvbnRyb2xzUmVxdWlyZVBvc3RCYWNrS2V5X18WCwUdc3RkbGlzdCRTb3J0RmllbGRfUGVyZm9ybWRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX1B1Ymxpc2hkYXRlBR1zdGRsaXN0JFNvcnRGaWVsZF9QdWJsaXNoZGF0ZQUdc3RkbGlzdCRTb3J0RmllbGRfRXhwaXJlZGRhdGUFHXN0ZGxpc3QkU29ydEZpZWxkX0V4cGlyZWRkYXRlBRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRxzdGRsaXN0JFNvcnRGaWVsZF9QZXJtaXRkZXB0BRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRlzdGRsaXN0JFNvcnRGaWVsZF9TdGRjb2RlBRtzdGRsaXN0JFNvZnRGaWVsZF9WaWV3Q291bnQFG3N0ZGxpc3QkU29mdEZpZWxkX1ZpZXdDb3VudO8M73tN9IyZEmIzbo3Rt9RG6tux&__EVENTVALIDATION=%2FwEWrwECzvCcwAMCh6Xl4AEC%2B6S9uAQCi7aBzQgCh%2Fe%2B9gYCkffzwAQCwPTZjgcC4KGK2QkCwPTdjgcCvbOBiA4CyPmN0AICl%2FjiqgIC4fuD2g0CnbGyoA4Cov%2BOnQQC88Lr2QYCydjo2QYCisvhqg0C6snGGQL%2B5ZDiAwLqyco5Av7llIIEAurJnvABAv7luLkFAurJopACAv7lvNkFAurJlrABAv7loPkEAurJmtABAv7lpJkFAurJrukCAv7liLIGAurJsokDAv7ljNIGAurJprACAv7lsPkFAurJqtACAv7ltJkGAu%2BCxxkC956R4gMC74LLOQL3npWCBALvgp%2FwAQL3nrm5BQLvgqOQAgL3nr3ZBQLvgpewAQL3nqH5BALvgpvQAQL3nqWZBQLvgq%2FpAgL3nomyBgLvgrOJAwL3no3SBgLvgqewAgL3nrH5BQLvgqvQAgL3nrWZBgLw%2BsYZAviWkeIDAvD6yjkC%2BJaVggQC8Pqe8AEC%2BJa5uQUC8PqikAIC%2BJa92QUC8PqWsAEC%2BJah%2BQQC8Pqa0AEC%2BJalmQUC8Pqu6QIC%2BJaJsgYC8PqyiQMC%2BJaN0gYC8PqmsAIC%2BJax%2BQUC8Pqq0AIC%2BJa1mQYCtfXGGQLBkZHiAwK19co5AsGRlYIEArX1nvABAsGRubkFArX1opACAsGRvdkFArX1lrABAsGRofkEArX1mtABAsGRpZkFArX1rukCAsGRibIGArX1sokDAsGRjdIGArX1prACAsGRsfkFArX1qtACAsGRtZkGArbtxhkCwomR4gMCtu3KOQLCiZWCBAK27Z7wAQLCibm5BQK27aKQAgLCib3ZBQK27ZawAQLCiaH5BAK27ZrQAQLCiaWZBQK27a7pAgLCiYmyBgK27bKJAwLCiY3SBgK27aawAgLCibH5BQK27arQAgLCibWZBgLrpMcZAvvAkeIDAuukyzkC%2B8CVggQC66Sf8AEC%2B8C5uQUC66SjkAIC%2B8C92QUC66SXsAEC%2B8Ch%2BQQC66Sb0AEC%2B8ClmQUC66Sv6QIC%2B8CJsgYC66SziQMC%2B8CN0gYC66SnsAIC%2B8Cx%2BQUC66Sr0AIC%2B8C1mQYC7JzHGQL8uJHiAwLsnMs5Avy4lYIEAuycn%2FABAvy4ubkFAuyco5ACAvy4vdkFAuycl7ABAvy4ofkEAuycm9ABAvy4pZkFAuycr%2BkCAvy4ibIGAuycs4kDAvy4jdIGAuycp7ACAvy4sfkFAuycq9ACAvy4tZkGAvGFxxkChaKR4gMC8YXLOQKFopWCBALxhZ%2FwAQKForm5BQLxhaOQAgKFor3ZBQLxhZewAQKFoqH5BALxhZvQAQKFoqWZBQKY94%2FECgLA9OGOBwL3oYbCBgLA9MWOBwLm2svIAXjLi6m3LznOSnsBwWkNseeuRdVq&stdlist%24txt_page_count_top=10000";
-            var url = string.Empty;
-            if (Utils.HasChinese(txtKeyword.Text))
+            var url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=0", txtKeyword.Text);
+            if (!Utils.FindChineseCharacters(txtKeyword.Text))
             {
-                url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=0", keyword);
+                url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=1", txtKeyword.Text);
             }
-            else
-            {
-                url = string.Format("http://10.113.1.69/std/stdsearch.aspx?key={0}&idx=1", keyword);
-            }
+
+            Cursor = Cursors.WaitCursor;
             var nationalStandards = GetNationalStandards(url, data, Encoding.UTF8);
             FillListView(nationalStandards);
-
-            if (lstStandard.Items.Count > 0)
-            {
-                lstStandard.Items[0].Selected = true;
-                lstStandard.Select();
-            }
-
             Cursor = Cursors.Default;
         }
 
@@ -122,7 +103,7 @@ namespace STDLite
             lstStandard.EndUpdate();
         }
 
-#region 下载操作
+        #region 下载操作
         private string GetHtml(string url, string data, Encoding encoding)
         {
             var wc = new WebClient { Encoding = encoding };
@@ -180,7 +161,7 @@ namespace STDLite
             else
             {
                 File.Delete(filename);
-                MessageBox.Show("网站暂未提供此标准的下载", "下载错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(@"网站暂未提供此标准的下载", @"下载错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -188,22 +169,22 @@ namespace STDLite
         {
             ssProcessBar.Value = e.ProgressPercentage;
         }
-#endregion
+        #endregion
 
-#region 菜单操作
+        #region 菜单操作
         private void munCopyNumber_Click(object sender, EventArgs e)
         {
-            Utils.SetClipboard(lstStandard.FocusedItem.SubItems[0].Text);
+            Utils.CopytToClipboard(lstStandard.FocusedItem.SubItems[0].Text);
         }
 
         private void munCopyName_Click(object sender, EventArgs e)
         {
-            Utils.SetClipboard(lstStandard.FocusedItem.SubItems[1].Text);
+            Utils.CopytToClipboard(lstStandard.FocusedItem.SubItems[1].Text);
         }
 
         private void munCopyStandard_Click(object sender, EventArgs e)
         {
-            Utils.SetClipboard(lstStandard.FocusedItem.SubItems[0].Text + lstStandard.FocusedItem.SubItems[1].Text);
+            Utils.CopytToClipboard(lstStandard.FocusedItem.SubItems[0].Text + lstStandard.FocusedItem.SubItems[1].Text);
         }
 
         private void munSaveAs_Click(object sender, EventArgs e)
@@ -235,8 +216,31 @@ namespace STDLite
         {
             TopMost = mnuTopMost.Checked;
         }
-        #endregion
 
+        private void munExportToExcel_Click(object sender, EventArgs e)
+        {
+            var sfd = new SaveFileDialog
+                {
+                    DefaultExt = @"xls",
+                    Filter = @"Excel文件|*.xls",
+                    FileName = DateTime.Now.ToString("yyyy-MM-dd"),
+                };
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                Utils.ListViewToExcel(lstStandard, sfd.FileName);
+            }
+        }
+
+        #endregion
+    }
+
+    class NationalStandard
+    {
+        public string Name;
+        public string Number;
+        public string DownloadUrl;
+        public string State;
+        public string Replacement;
     }
 }
 
