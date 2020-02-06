@@ -54,7 +54,7 @@ namespace STDLite
             if (!File.Exists(fileName))
             {
                 var uri = lstStandard.FocusedItem.SubItems[4].Text;
-                DownloadFile(uri, fileName, this);
+                DownloadFile(uri, fileName, true, this);
             }
             else
             { // 文件已下载，直接打开
@@ -141,22 +141,26 @@ namespace STDLite
             return standards;
         }
 
-        private void DownloadFile(string uri, string filename, FrmMain form)
+        private void DownloadFile(string uri, string filename, bool canOpen, FrmMain form)
         {
             ssProcessBar.Value = 0;
             var wc = new WebClient();
             // 匿名委托使用外部变量，传递文件保存路径
-            wc.DownloadFileCompleted += (sender, e) => OnDownloadFileCompleted(filename);
+            wc.DownloadFileCompleted += (sender, e) => OnDownloadFileCompleted(filename, canOpen);
             wc.DownloadProgressChanged += OnDownloadFileChanged;
             wc.DownloadFileAsync(new Uri(uri), filename);
         }
 
-        private void OnDownloadFileCompleted(string filename)
+        private void OnDownloadFileCompleted(string filename, bool canOpen)
         {
             var fileLength = new FileInfo(filename).Length / 1024;
-            if (fileLength > 10)
+            if (fileLength > 10 && canOpen)
             {
                 Process.Start(filename);
+            }
+            else if (fileLength > 10 && !canOpen)
+            {
+                MessageBox.Show(@"下载成功");
             }
             else
             {
@@ -202,7 +206,7 @@ namespace STDLite
             {
                 var fileName = sfd.FileName;
                 var downloadUrl = lstStandard.FocusedItem.SubItems[4].Text;
-                DownloadFile(downloadUrl, fileName, this);
+                DownloadFile(downloadUrl, fileName, false, this);
             }
 
         }
